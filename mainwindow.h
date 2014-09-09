@@ -3,6 +3,33 @@
 
 #include <QMainWindow>
 #include <QGraphicsScene>
+#include <QTimer>
+#include <QList>
+
+#include <QGraphicsRectItem>
+
+class MyGraphicsRectItem : public QObject, public QGraphicsRectItem
+{
+    Q_OBJECT
+    Q_PROPERTY(QRectF geometry READ geometry WRITE setGeometry)
+    Q_PROPERTY(QPointF pos READ pos WRITE setPos)
+
+public slots:
+    QRectF geometry() { return this->rect(); }
+    void setGeometry(QRectF r) { this->setRect(r); }
+};
+
+class MyGraphicsEllipseItem : public QObject, public QGraphicsEllipseItem
+{
+    Q_OBJECT
+    Q_PROPERTY(QRectF geometry READ geometry WRITE setGeometry)
+    Q_PROPERTY(QPointF pos READ pos WRITE setPos)
+
+public slots:
+    QRectF geometry() { return this->rect(); }
+    void setGeometry(QRectF r) { this->setRect(r); }
+};
+
 
 namespace Ui {
     class MainWindow;
@@ -19,6 +46,13 @@ public:
 private:
     Ui::MainWindow *ui;
     QGraphicsScene scene;
+    QTimer timer;
+
+    QList <MyGraphicsRectItem * > rect_items;
+    QList <MyGraphicsEllipseItem * > ellipse_items;
+
+public slots:
+    void slot_updateScene();
 };
 
 #endif // MAINWINDOW_H
