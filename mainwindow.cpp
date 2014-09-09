@@ -8,9 +8,10 @@
 #include <QSequentialAnimationGroup>
 #include <QDebug>
 
+
 void animate_item(MyGraphicsEllipseItem * item) {
     int duration = 3000;
-    const int multiplier = 3;
+    const int multiplier = 10;
 
     QPointF pos = item->scenePos();
     int size = item->rect().width() * multiplier;
@@ -51,7 +52,7 @@ void animate_item(MyGraphicsEllipseItem * item) {
     anim4->setStartValue(left_bottom);
     anim4->setEndValue(left_top);
 
-    QSequentialAnimationGroup * group = new QSequentialAnimationGroup();
+    QSequentialAnimationGroup * group = new QSequentialAnimationGroup(item);
     group->setLoopCount(-1);
     group->addAnimation(anim1);
     group->addAnimation(anim2);
@@ -62,8 +63,7 @@ void animate_item(MyGraphicsEllipseItem * item) {
 
 #include <math.h>
 void animate_item(MyGraphicsRectItem * item) {
-    int duration = 3000;
-    const int multiplier = 3;
+    const int multiplier = 10;
 
     QPointF pos = item->scenePos();
     int size = item->rect().width() * multiplier;
@@ -83,7 +83,8 @@ void animate_item(MyGraphicsRectItem * item) {
     QGraphicsScene * scene = item->scene();
     scene->addItem(traj);
 
-    QSequentialAnimationGroup * group = new QSequentialAnimationGroup();
+
+    QSequentialAnimationGroup * group = new QSequentialAnimationGroup(item);
     group->setLoopCount(-1);
 
     float DEG2RAD = (float)(3.14159 / 180);
@@ -130,6 +131,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     for (int i = 0; i < m; i++) {
         MyGraphicsRectItem * rectItem = new MyGraphicsRectItem(); // создание класс Квадрат
+        rectItem->setData(Qt::UserRole + 1, 111); // для идентификации элемента
         // случайный цвет в rgb
         rectItem->setBrush(QColor(qrand() % 255, qrand() % 255, qrand() % 255));
         int x = (qrand() % (ui->graphicsView->width() - 200)) + 100;
@@ -144,6 +146,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     for (int i = 0; i < n; i++) {
         MyGraphicsEllipseItem * ellipseItem = new MyGraphicsEllipseItem(); // создание класс Круг
+        ellipseItem->setData(Qt::UserRole + 1, 777); // для идентификации элемента
         // случайный цвет в rgb
         ellipseItem->setBrush(QColor(qrand() % 255, qrand() % 255, qrand() % 255));
         int x = qrand() % (ui->graphicsView->width() / 2);
@@ -155,9 +158,74 @@ MainWindow::MainWindow(QWidget *parent) :
 
         animate_item(ellipseItem); // Анимируем объект
     }
+
+
+    QTimer * timer = new QTimer(this);
+    timer->setInterval(33); // таймер активируется каждые 33 миллисекунды = 0.033 секунды
+    QObject::connect(timer, SIGNAL(timeout()), SLOT(slots_checking_for_collision()));
+    timer->start();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::slots_checking_for_collision()
+{
+//    foreach (MyGraphicsEllipseItem * item, ellipse_items) {
+//        // Получим список элементов, с которым данный столкнулся:
+//        QList <QGraphicsItem *> colliding =  item->collidingItems();
+//        if (colliding.isEmpty())
+//            continue;
+
+//        item->collidesWithItem()
+//    }
+
+//    foreach (MyGraphicsRectItem * item, rect_items) {
+
+//    }
+
+    // Все элементы () на сцене
+    foreach (QGraphicsItem * item, scene.items()) {
+        int data = item->data(Qt::UserRole + 1).toInt();
+        if (data == 777 || data == 111) {
+            // Получим список элементов, с которым данный столкнулся:
+            QList <QGraphicsItem *> colliding =  item->collidingItems();
+            foreach (QGraphicsItem * other, colliding) {
+                int item_size = 0;
+                if (item->data(Qt::UserRole + 1) == 777) {
+                    MyGraphicsEllipseItem * it_el = static_cast <MyGraphicsEllipseItem *> (other);
+                    item_size = it_el->rect().width();
+
+                } else if (other->data(Qt::UserRole + 1) == 111) {
+                    MyGraphicsRectItem * it_rect = static_cast <MyGraphicsRectItem *> (other);
+                    item_size = it_rect->rect().width();
+                }
+
+                int other_size = 0;
+                if (other->data(Qt::UserRole + 1) == 777) {
+                    MyGraphicsEllipseItem * ot_el = static_cast <MyGraphicsEllipseItem *> (other);
+                    other_size = ot_el->rect().width();
+
+                } else if (other->data(Qt::UserRole + 1) == 111) {
+                    MyGraphicsRectItem * ot_rect = static_cast <MyGraphicsRectItem *> (other);
+                    other_size = ot_rect->rect().width();
+                }
+
+                if (item_size > other_size) {
+                    scene.removeItem(other);
+//                    delete other;
+
+                    item->setScale(1.1); // увеличиваем на 10%
+                } else {
+                    scene.removeItem(item);
+//                    delete item;
+
+                    other->setScale(1.1); // увеличиваем на 10%
+                }
+            }
+            return;
+        }
+    }
 }

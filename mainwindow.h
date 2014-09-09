@@ -8,6 +8,7 @@
 
 #include <QGraphicsRectItem>
 
+// Класс Квадрат.
 class MyGraphicsRectItem : public QObject, public QGraphicsRectItem
 {
     Q_OBJECT
@@ -19,6 +20,7 @@ public slots:
     void setGeometry(QRectF r) { this->setRect(r); }
 };
 
+// Класс Круг.
 class MyGraphicsEllipseItem : public QObject, public QGraphicsEllipseItem
 {
     Q_OBJECT
@@ -49,6 +51,9 @@ private:
 
     QList <MyGraphicsRectItem * > rect_items;
     QList <MyGraphicsEllipseItem * > ellipse_items;
+
+private slots:
+    void slots_checking_for_collision();
 };
 
 #endif // MAINWINDOW_H
