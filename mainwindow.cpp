@@ -60,6 +60,7 @@ void animate_item(MyGraphicsEllipseItem * item) {
     group->start();
 }
 
+#include <math.h>
 void animate_item(MyGraphicsRectItem * item) {
     int duration = 3000;
     const int multiplier = 3;
@@ -82,33 +83,27 @@ void animate_item(MyGraphicsRectItem * item) {
     QGraphicsScene * scene = item->scene();
     scene->addItem(traj);
 
-
-    QPropertyAnimation * anim1 = new QPropertyAnimation(item, "pos");
-    anim1->setDuration(duration);
-    anim1->setStartValue(left_top);
-    anim1->setEndValue(right_top);
-
-    QPropertyAnimation * anim2 = new QPropertyAnimation(item, "pos");
-    anim2->setDuration(duration);
-    anim2->setStartValue(right_top);
-    anim2->setEndValue(right_bottom);
-
-    QPropertyAnimation * anim3 = new QPropertyAnimation(item, "pos");
-    anim3->setDuration(duration);
-    anim3->setStartValue(right_bottom);
-    anim3->setEndValue(left_bottom);
-
-    QPropertyAnimation * anim4 = new QPropertyAnimation(item, "pos");
-    anim4->setDuration(duration);
-    anim4->setStartValue(left_bottom);
-    anim4->setEndValue(left_top);
-
     QSequentialAnimationGroup * group = new QSequentialAnimationGroup();
     group->setLoopCount(-1);
-    group->addAnimation(anim1);
-    group->addAnimation(anim2);
-    group->addAnimation(anim3);
-    group->addAnimation(anim4);
+
+    float DEG2RAD = (float)(3.14159 / 180);
+    QPointF lastPos(0, 0);
+    for (int i = 0; i < 360; i++)
+    {
+        float radius = size / 2;
+        float degInRad = i * DEG2RAD;
+        float x = cos(degInRad) * radius + traj->pos().x() + radius / 2;
+        float y = sin(degInRad) * radius + traj->pos().y() + radius / 2;
+
+        QPropertyAnimation * anim = new QPropertyAnimation(item, "pos");
+        anim->setDuration(10);
+        anim->setStartValue(lastPos);
+        anim->setEndValue(QPointF(x, y));
+
+        lastPos = QPointF(x, y);
+        group->addAnimation(anim);
+    }
+
     group->start();
 }
 
@@ -121,7 +116,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->graphicsView->setRenderHint(QPainter::Antialiasing); // Установим сглаживание
 
     // Размер окна и сцены
-    resize(500, 500);
+    resize(800, 800);
     scene.setSceneRect(QRectF(QPointF(0, 0), size()));
     ui->graphicsView->resize(size());
 
@@ -133,20 +128,19 @@ MainWindow::MainWindow(QWidget *parent) :
     int m = 5; // квадраты
     int n = 3; // кругов
 
-//    for (int i = 0; i < m; i++) {
-//        MyGraphicsRectItem * rectItem = new MyGraphicsRectItem(); // создание класс Квадрат
-//        // случайный цвет в rgb
-//        rectItem->setBrush(QColor(qrand() % 255, qrand() % 255, qrand() % 255));
-//        int x = qrand() % (ui->graphicsView->width() - 100);
-//        int y = qrand() % (ui->graphicsView->height() - 100);
-//        int s = (qrand() % 50) + 20;
-//        rectItem->setRect(x, y, s, s); // установка положения и размера
-//        scene.addItem(rectItem); // добавление на сцену
-//        rect_items.append(rectItem); // добавление в список
+    for (int i = 0; i < m; i++) {
+        MyGraphicsRectItem * rectItem = new MyGraphicsRectItem(); // создание класс Квадрат
+        // случайный цвет в rgb
+        rectItem->setBrush(QColor(qrand() % 255, qrand() % 255, qrand() % 255));
+        int x = (qrand() % (ui->graphicsView->width() - 200)) + 100;
+        int y = (qrand() % (ui->graphicsView->height() - 200)) + 100;
+        int s = (qrand() % 50) + 20;
+        rectItem->setRect(x, y, s, s); // установка положения и размера
+        scene.addItem(rectItem); // добавление на сцену
+        rect_items.append(rectItem); // добавление в список
 
-//        animate_item(rectItem); // Анимируем объект
-//    }
-
+        animate_item(rectItem); // Анимируем объект
+    }
 
     for (int i = 0; i < n; i++) {
         MyGraphicsEllipseItem * ellipseItem = new MyGraphicsEllipseItem(); // создание класс Круг
@@ -161,22 +155,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
         animate_item(ellipseItem); // Анимируем объект
     }
-
-
-//    MyGraphicsEllipseItem * ellipseItem = ellipse_items[0];
-//    animate_item(ellipseItem);
-
-
-    QObject::connect(&timer, SIGNAL(timeout()), SLOT(slot_updateScene()));
-    timer.start(1000);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::slot_updateScene()
-{
-
 }

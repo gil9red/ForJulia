@@ -46,13 +46,9 @@ public:
 private:
     Ui::MainWindow *ui;
     QGraphicsScene scene;
-    QTimer timer;
 
     QList <MyGraphicsRectItem * > rect_items;
     QList <MyGraphicsEllipseItem * > ellipse_items;
-
-public slots:
-    void slot_updateScene();
 };
 
 #endif // MAINWINDOW_H
